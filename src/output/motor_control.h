@@ -1,104 +1,103 @@
 #pragma once
-#include <Arduino.h>
 
-class Motor
+namespace motor_control
 {
-public:
-    // pins
-    int encoder_pin_a;
-    int encoder_pin_b;
-    int motor_pin_a;
-    int motor_pin_b;
-
-    // data
-    int64_t encoder_pos = 0;
-    double output_position = 0;
-    float counts_per_rev = 11;
-    double gear_ratio = 98.8; // the gear ratio for this specific motor
-
-    Motor() = default;
-    Motor(const Motor &m)
+    class Motor
     {
-        encoder_pin_a = m.encoder_pin_a; // do not know if these can be accesed at the moment
-        encoder_pin_b = m.encoder_pin_b;
-        motor_pin_a = m.motor_pin_a;
-        motor_pin_b = m.motor_pin_b;
+    public:
+        // pins
+        int encoder_pin_a;
+        int encoder_pin_b;
+        int motor_pin_a;
+        int motor_pin_b;
 
-        encoder_pos = m.encoder_pos;
-        output_position = m.output_position;
-        gear_ratio = m.gear_ratio;
-    }
-    Motor(int e_a, int e_b, int m_a, int m_b)
-    {
-        encoder_pin_a = e_a;
-        encoder_pin_b = e_b;
-        motor_pin_a = m_a;
-        motor_pin_b = m_b;
-    }
+        // data
+        int64_t encoder_pos = 0;
+        double rpm_speed = 0;
+        double mm_speed = 0;
+        double output_position = 0;
+        double output_distance = 0;
+        float counts_per_rev = 11;
+        double gear_ratio = 98.8;             // the gear ratio for this specific motor
+        double wheel_circumfrence = PI * 120; // in mm
 
-    void update()
-    {
-        output_position = encoder_pos / (gear_ratio * counts_per_rev);
-    }
+        // acceleration
+        double mm_per_sec = 5;
+        double top_speed = 200;
+        double current_speed = 0;
 
-    void log()
-    {
-        Serial.print("encoder [");
-        Serial.print((int32_t)encoder_pos);
-        Serial.print("]   output [");
-        Serial.print(output_position);
-        Serial.println("]");
-    }
-};
-
-class Omni_Motors
-{
-public:
-    int hello = 5;
-    Motor m1, m2, m3;
-
-    Omni_Motors() = default;
-    Omni_Motors(const Omni_Motors &o)
-    {
-        m1 = o.m1;
-        m2 = o.m2;
-        m3 = o.m3;
-    }
-    Omni_Motors(Motor m1, Motor m2, Motor m3)
-    {
-        this->m1 = m1;
-        this->m2 = m2;
-        this->m3 = m3;
-    }
-
-    void init()
-    {
-
-        // attachInterrupt(digitalPinToInterrupt(m1.encoder_pin_a), update_encoder<m1>, )
-    }
-};
-
-Omni_Motors motors();
-
-namespace Encoder_interrrupts
-{
-    void m1()
-    {
-
-        bool current_a = digitalRead(motors.m1.encoder_pin_a);
-        static bool last_a = current_a;
-
-        if ((last_a == false) && (current_a == true))
+    private:
+        void acceleration(double to_speed)
         {
-            if (digitalRead(m->encoder_pin_b) == false)
+            uint32_t current_time = millis();
+            static uint32_t last_time = current_time;
+
+            if (to_speed > current_speed)/*accelerating*/ 
             {
-                m->encoder_pos--;
+                current_speed += ((current_time - last_time) * mm_per_sec) / 1000;
+            }
+            else if (to_speed < current_speed)/*decelerating*/ 
+            {
+
             }
             else
             {
-                m->encoder_pos++;
+                // has hit top speed
             }
+            last_time = current_time;
         }
-        last_a = current_a;
-    }
-} // namespace Encoder_interrrupts
+        void acceleration() // same function but without the argument
+        {
+            acceleration(top_speed);
+        }
+
+    public:
+        Motor() = default;
+        Motor(const Motor &m)
+        {
+            encoder_pin_a = m.encoder_pin_a; // do not know if these can be accesed at the moment
+            encoder_pin_b = m.encoder_pin_b;
+            motor_pin_a = m.motor_pin_a;
+            motor_pin_b = m.motor_pin_b;
+
+            encoder_pos = m.encoder_pos;
+            output_position = m.output_position;
+            gear_ratio = m.gear_ratio;
+        }
+        Motor(int e_a, int e_b, int m_a, int m_b)
+        {
+            encoder_pin_a = e_a;
+            encoder_pin_b = e_b;
+            motor_pin_a = m_a;
+            motor_pin_b = m_b;
+        }
+
+        void update()
+        {
+            uint32_t current_time = millis();
+            static uint32_t last_time = current_time;
+            static double last_rpm = output_position;
+
+            output_position = encoder_pos / (gear_ratio * counts_per_rev);
+            output_distance = output_position * wheel_circumfrence;
+            rpm_speed = (output_position - last_rpm) / (current_time - last_time) * 60000;
+            mm_speed = rpm_speed * wheel_circumfrence;
+
+            last_rpm = output_position;
+            last_time = current_time;
+        }
+
+        void log()
+        {
+            Serial.print("encoder [");
+            Serial.print((int32_t)encoder_pos);
+            Serial.print("]   output [");
+            Serial.print(output_position);
+            Serial.print("]   RPM [");
+            Serial.print(rpm_speed);
+            Serial.print("]   mm/min [");
+            Serial.print(mm_speed);
+            Serial.println("]");
+        }
+    };
+} // namespace motor_control
