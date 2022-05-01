@@ -20,4 +20,14 @@ void loop()
 {
   Motors::m1.update();
   Motors::m1.log();
+
+  analogWrite(10, 200);
+
+  digitalWrite(9, true);
+  digitalWrite(8, false);
+delay(2000);
+analogWrite(10, 255);
+  digitalWrite(9, false);
+  digitalWrite(8, true);
+delay(2000);
 }
