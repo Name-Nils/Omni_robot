@@ -3,7 +3,7 @@
 
 namespace Motors
 {
-    motor_control::Motor m1(2, 3, 0, 0), m2(4, 5, 0, 0), m3(6, 7, 0, 0);
+    motor_control::Motor m1(0,0,0,2,3), m2(0,0,0,4,5), m3(0,0,0,6,7);
 } // namespace Motors
 
 namespace Encoder_interrrupts
@@ -17,11 +17,11 @@ namespace Encoder_interrrupts
         {
             if (digitalRead(Motors::m1.encoder_pin_b) == false)
             {
-                Motors::m1.encoder_pos--;
+                Motors::m1.encoder_position--;
             }
             else
             {
-                Motors::m1.encoder_pos++;
+                Motors::m1.encoder_position++;
             }
         }
         last_a = current_a;
@@ -35,11 +35,11 @@ namespace Encoder_interrrupts
         {
             if (digitalRead(Motors::m2.encoder_pin_b) == false)
             {
-                Motors::m2.encoder_pos--;
+                Motors::m2.encoder_position--;
             }
             else
             {
-                Motors::m2.encoder_pos++;
+                Motors::m2.encoder_position++;
             }
         }
         last_a = current_a;
@@ -53,11 +53,11 @@ namespace Encoder_interrrupts
         {
             if (digitalRead(Motors::m3.encoder_pin_b) == false)
             {
-                Motors::m3.encoder_pos--;
+                Motors::m3.encoder_position--;
             }
             else
             {
-                Motors::m3.encoder_pos++;
+                Motors::m3.encoder_position++;
             }
         }
         last_a = current_a;
