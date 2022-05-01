@@ -34,15 +34,12 @@ public:
         encoder_pin_b = e_b;
         motor_pin_a = m_a;
         motor_pin_b = m_b;
-
-        attachInterrupt(digitalPinToInterrupt(encoder_pin_a), , CHANGE);
     }
 
     void update()
     {
         output_position = encoder_pos / (gear_ratio * counts_per_rev);
     }
-
 
     void log()
     {
@@ -54,29 +51,10 @@ public:
     }
 };
 
-
-template <Motor *m>
-void update_encoder()
-{
-    bool current_a = digitalRead(m->encoder_pin_a);
-    static bool last_a = current_a;
-
-    if ((last_a == false) && (current_a == true))
-    {
-        if (digitalRead(m->encoder_pin_b) == false)
-        {
-            m->encoder_pos--;
-        }
-        else
-        {
-            m->encoder_pos++;
-        }
-    }
-    last_a = current_a;
-}
-
 class Omni_Motors
 {
+public:
+    int hello = 5;
     Motor m1, m2, m3;
 
     Omni_Motors() = default;
@@ -96,7 +74,31 @@ class Omni_Motors
     void init()
     {
 
-        update_encoder<m1>();
-        //attachInterrupt(digitalPinToInterrupt(m1.encoder_pin_a), update_encoder<m1>, )
+        // attachInterrupt(digitalPinToInterrupt(m1.encoder_pin_a), update_encoder<m1>, )
     }
 };
+
+Omni_Motors motors();
+
+namespace Encoder_interrrupts
+{
+    void m1()
+    {
+
+        bool current_a = digitalRead(motors.m1.encoder_pin_a);
+        static bool last_a = current_a;
+
+        if ((last_a == false) && (current_a == true))
+        {
+            if (digitalRead(m->encoder_pin_b) == false)
+            {
+                m->encoder_pos--;
+            }
+            else
+            {
+                m->encoder_pos++;
+            }
+        }
+        last_a = current_a;
+    }
+} // namespace Encoder_interrrupts

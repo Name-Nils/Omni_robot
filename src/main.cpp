@@ -8,6 +8,5 @@ void setup()
 
 void loop()
 {
-  m.update();
-  m.log();
+  
 }
