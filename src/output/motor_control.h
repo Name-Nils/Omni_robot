@@ -10,6 +10,7 @@ namespace motor_control
         int encoder_pin_b;
         int motor_pin_a;
         int motor_pin_b;
+        int motor_pin_speed;
 
         // data
         int64_t encoder_pos = 0;
@@ -27,18 +28,55 @@ namespace motor_control
         double current_speed = 0;
 
     private:
-        void acceleration(double to_speed)
+        void acceleration(double to_speed);
+        void acceleration() // same function but without the argument
+        
         {
+            acceleration(top_speed);
+        }
+
+    public:
+        Motor() = default;
+        Motor(const Motor &m);
+        Motor(int e_a, int e_b, int m_a, int m_b);
+
+
+        void update();
+        void log();
+    };
+
+
+
+    Motor::Motor(const Motor &m)
+    {
+        encoder_pin_a = m.encoder_pin_a; // do not know if these can be accesed at the moment
+        encoder_pin_b = m.encoder_pin_b;
+        motor_pin_a = m.motor_pin_a;
+        motor_pin_b = m.motor_pin_b;
+
+        encoder_pos = m.encoder_pos;
+        output_position = m.output_position;
+        gear_ratio = m.gear_ratio;
+    }
+    Motor::Motor(int e_a, int e_b, int m_a, int m_b)
+    {
+        encoder_pin_a = e_a;
+        encoder_pin_b = e_b;
+        motor_pin_a = m_a;
+        motor_pin_b = m_b;
+    }
+
+    void Motor::acceleration(double to_speed)
+    {
             uint32_t current_time = millis();
             static uint32_t last_time = current_time;
 
-            if (to_speed > current_speed)/*accelerating*/ 
+            if (to_speed > current_speed) /*accelerating*/
             {
                 current_speed += ((current_time - last_time) * mm_per_sec) / 1000;
             }
-            else if (to_speed < current_speed)/*decelerating*/ 
+            else if (to_speed < current_speed) /*decelerating*/
             {
-
             }
             else
             {
@@ -46,58 +84,33 @@ namespace motor_control
             }
             last_time = current_time;
         }
-        void acceleration() // same function but without the argument
-        {
-            acceleration(top_speed);
-        }
 
-    public:
-        Motor() = default;
-        Motor(const Motor &m)
-        {
-            encoder_pin_a = m.encoder_pin_a; // do not know if these can be accesed at the moment
-            encoder_pin_b = m.encoder_pin_b;
-            motor_pin_a = m.motor_pin_a;
-            motor_pin_b = m.motor_pin_b;
+    void Motor::update()
+    {
+        uint32_t current_time = millis();
+        static uint32_t last_time = current_time;
+        static double last_rpm = output_position;
 
-            encoder_pos = m.encoder_pos;
-            output_position = m.output_position;
-            gear_ratio = m.gear_ratio;
-        }
-        Motor(int e_a, int e_b, int m_a, int m_b)
-        {
-            encoder_pin_a = e_a;
-            encoder_pin_b = e_b;
-            motor_pin_a = m_a;
-            motor_pin_b = m_b;
-        }
+        output_position = encoder_pos / (gear_ratio * counts_per_rev);
+        output_distance = output_position * wheel_circumfrence;
+        rpm_speed = (output_position - last_rpm) / (current_time - last_time) * 60000;
+        mm_speed = rpm_speed * wheel_circumfrence;
 
-        void update()
-        {
-            uint32_t current_time = millis();
-            static uint32_t last_time = current_time;
-            static double last_rpm = output_position;
+        last_rpm = output_position;
+        last_time = current_time;
+    }
 
-            output_position = encoder_pos / (gear_ratio * counts_per_rev);
-            output_distance = output_position * wheel_circumfrence;
-            rpm_speed = (output_position - last_rpm) / (current_time - last_time) * 60000;
-            mm_speed = rpm_speed * wheel_circumfrence;
+    void Motor::log()
+    {
+        Serial.print("encoder [");
+        Serial.print((int32_t)encoder_pos);
+        Serial.print("]   output [");
+        Serial.print(output_position);
+        Serial.print("]   RPM [");
+        Serial.print(rpm_speed);
+        Serial.print("]   mm/min [");
+        Serial.print(mm_speed);
+        Serial.println("]");
+    }
 
-            last_rpm = output_position;
-            last_time = current_time;
-        }
-
-        void log()
-        {
-            Serial.print("encoder [");
-            Serial.print((int32_t)encoder_pos);
-            Serial.print("]   output [");
-            Serial.print(output_position);
-            Serial.print("]   RPM [");
-            Serial.print(rpm_speed);
-            Serial.print("]   mm/min [");
-            Serial.print(mm_speed);
-            Serial.println("]");
-        }
-    };
 } // namespace motor_control
