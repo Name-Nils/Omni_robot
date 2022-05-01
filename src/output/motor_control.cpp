@@ -3,7 +3,7 @@
 
 namespace Motors
 {
-    motor_control::Motor m1(0,0,0,2,3), m2(0,0,0,4,5), m3(0,0,0,6,7);
+    motor_control::Motor m1(8,9,10,2,3), m2(0,0,0,4,5), m3(0,0,0,6,7);
 } // namespace Motors
 
 namespace Encoder_interrrupts

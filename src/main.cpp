@@ -14,23 +14,15 @@ void setup()
 {
   Serial.begin(9600);
   Encoder_interrrupts::init(); // set the interrupt functions and pins
-
-  analogWrite(10, 255);
-  digitalWrite(9, true);
-  digitalWrite(8, false);
 }
 
 void loop()
 {
   Motors::m1.update_data();
-/*
-  analogWrite(10, 200);
 
-  digitalWrite(9, true);
-  digitalWrite(8, false);
-delay(2000);
-analogWrite(10, 255);
-  digitalWrite(9, false);
-  digitalWrite(8, true);
-delay(2000);
-*/}
+  double wantes_position = map(analogRead(A7), 0, 1024, -1000, 1000);
+  Motors::m1.go(wantes_position);
+  Serial.print(wantes_position);
+  Serial.print("   ");
+  Motors::m1.print();
+}
