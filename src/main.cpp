@@ -23,6 +23,10 @@ void loop()
   double wantes_position = map(analogRead(A7), 0, 1024, -1000, 1000);
   Motors::m1.go(wantes_position);
   Serial.print(wantes_position);
+  Serial.print("   ");  
+  Serial.print(Motors::m1.the_thing());
+  //Motors::m1.print();
+
   Serial.print("   ");
-  Motors::m1.print();
+  Serial.println(Motors::m1.the_otha_one());
 }

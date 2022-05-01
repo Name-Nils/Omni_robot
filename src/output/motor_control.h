@@ -15,25 +15,34 @@ namespace motor_control
 
         // private functions
         void direction(bool direction);
-        double confine_encoder(double wanted_pos, double threshold);
+        double confine_encoder_absolute(double wanted_pos, double threshold);
+
     public:
         // public pins
-        int encoder_pin_a, encoder_pin_b;
+        int encoder_pin_a, encoder_pin_b; // need to be public for the interrupt function that changes the encoder position
 
         // public data
         int64_t encoder_position = 0;
-        
 
         // public functions
         Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b);
-        
+
+
+        double the_thing()
+        {
+            return absolute_position_mm;
+        }
+        uint8_t the_otha_one()
+        {
+            return speed_value;
+        }
+
         void print();
         void update_data();
         bool go(double wanted_position);
     };
-    
 
-    inline Motor::Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b) 
+    inline Motor::Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b)
     {
         this->M1 = M1;
         this->M2 = M2;
@@ -54,8 +63,7 @@ namespace motor_control
     {
         const double gear_ratio = 98.8;
         const double encoder_reads_per_rotation = 11;
-        const double wheel_diameter = 120; //mm
-
+        const double wheel_diameter = 120; // mm
 
         uint32_t current_time = millis();
         static uint32_t last_time = current_time;
@@ -81,20 +89,30 @@ namespace motor_control
             digitalWrite(M2, true);
         }
     }
-    inline double Motor::confine_encoder(double wanted_position, double threshold)
+    inline double Motor::confine_encoder_absolute(double wanted_position, double threshold)
     {
-        // need to adjust the speed in small amounts so get to the position correctly. speed value is a 8 bit integer (pwn signal)
-        direction(wanted_position > absolute_position_mm);
-
-        if (abs(absolute_position_mm - wanted_position) > threshold)
-        {
-            // shoud move according to this function
-            speed_value = (speed_value < 255 - 50) ? speed_value + 50 : 255;
-        }
-        else
+        if (abs(wanted_position - absolute_position_mm) <= threshold) 
         {
             speed_value = 0;
+            analogWrite(speed_pin, speed_value);
+            return wanted_position - absolute_position_mm;
         }
+
+        // Pid
+        const double P = 1.5;
+        const double I = 0.05;
+        static double integral_error = 0;
+        uint32_t current_speed = millis();
+        static uint32_t last_speed = current_speed;
+
+        double error = wanted_position - absolute_position_mm;
+        integral_error += error * (current_speed - last_speed) / 1000;
+        double pid = error * P + integral_error * I;
+
+        last_speed = current_speed;
+
+        direction(pid > 0);
+        speed_value += pid;
 
         analogWrite(speed_pin, speed_value);
 
@@ -102,7 +120,8 @@ namespace motor_control
     }
     inline bool Motor::go(double wanted_position)
     {
-        if (confine_encoder(wanted_position, 10) <= 10) return true;
+        if (confine_encoder_absolute(wanted_position, 10) <= 10)
+            return true;
         return false;
     }
 }
