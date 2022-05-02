@@ -26,4 +26,7 @@ void loop()
   
   Serial.print("   ");
   Motors::m1.print();
+
+
+  delay(10);
 }

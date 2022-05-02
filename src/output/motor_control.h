@@ -85,25 +85,23 @@ namespace motor_control
     inline double Motor::confine_encoder_speed(double speed)
     {
         const double P = 1;
-        const double I = 0.0;
+        const double I = 0.1;
 
         uint32_t current_time = millis();
         static uint32_t last_time = current_time;
-        static double integral_error = 0;
-
+        static double int_error = 0.0;
+        // need a motor control and direction 
         double error = speed_mm_s - speed;
-        integral_error += error * (double)(current_time - last_time) / 1000.0;
+        int_error += error * (double)((current_time - last_time) / 1000.0);
+
+        double pid = error * P + int_error * I;
+
+        Serial.print(error * (double)((current_time - last_time) / 1000.0));
+        Serial.print("   ");
+        Serial.print(int_error);
+        Serial.print("   ");
+
         last_time = current_time;
-
-        double pid = error * P + integral_error * I; // could try to remove the i term witch would release the nan vairble and at least let the motor move at all
-
-
-        direction(speed > 0);
-        speed_value = abs((int)pid); // since direction isnt set here this only the speed 
-        speed_value = (speed_value > 255) ? 255 : speed_value;
-        speed_value = (speed_value < 0) ? 0 : speed_value;
-
-        analogWrite(speed_pin, speed_value);
     }
     inline double Motor::confine_encoder_absolute(double wanted_position, double threshold)
     {
