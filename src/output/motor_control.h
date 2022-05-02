@@ -15,6 +15,7 @@ namespace motor_control
 
         // private functions
         void direction(bool direction);
+        double confine_encoder_speed(double speed);
         double confine_encoder_absolute(double wanted_pos, double threshold);
 
     public:
@@ -28,18 +29,10 @@ namespace motor_control
         Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b);
 
 
-        double the_thing()
-        {
-            return absolute_position_mm;
-        }
-        uint8_t the_otha_one()
-        {
-            return speed_value;
-        }
-
         void print();
         void update_data();
         bool go(double wanted_position);
+        void set_speed(double speed);
     };
 
     inline Motor::Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b)
@@ -89,6 +82,31 @@ namespace motor_control
             digitalWrite(M2, true);
         }
     }
+    inline double Motor::confine_encoder_speed(double speed)
+    {
+        const double P = 1;
+        const double I = 0.0;
+
+        uint32_t current_time = millis();
+        static uint32_t last_time = current_time;
+        static double integral_error = 0;
+
+        double error = speed_mm_s - speed;
+        integral_error += error * (double)(current_time - last_time) / 1000.0;
+        last_time = current_time;
+
+        Serial.print(integral_error);
+
+        double pid = error * P + integral_error * I;
+
+
+        direction(speed > 0);
+        speed_value += (int)pid;
+        speed_value = (speed_value > 255) ? 255 : speed_value;
+        speed_value = (speed_value < 0) ? 0 : speed_value;
+
+        analogWrite(speed_pin, speed_value);
+    }
     inline double Motor::confine_encoder_absolute(double wanted_position, double threshold)
     {
         if (abs(wanted_position - absolute_position_mm) <= threshold) 
@@ -123,5 +141,9 @@ namespace motor_control
         if (confine_encoder_absolute(wanted_position, 10) <= 10)
             return true;
         return false;
+    }
+    inline void Motor::set_speed(double speed)
+    {
+        confine_encoder_speed(speed);
     }
 }
