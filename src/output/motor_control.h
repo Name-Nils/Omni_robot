@@ -23,7 +23,7 @@ namespace motor_control
         int encoder_pin_a, encoder_pin_b; // need to be public for the interrupt function that changes the encoder position
 
         // public data
-        int64_t encoder_position = 0;
+        volatile int64_t encoder_position = 0;
 
         // public functions
         Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b);
@@ -95,9 +95,7 @@ namespace motor_control
         integral_error += error * (double)(current_time - last_time) / 1000.0;
         last_time = current_time;
 
-        Serial.print(integral_error);
-
-        double pid = error * P + integral_error * I;
+        double pid = error * P + integral_error * I; // could try to remove the i term witch would release the nan vairble and at least let the motor move at all
 
 
         direction(speed > 0);
