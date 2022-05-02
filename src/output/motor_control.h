@@ -99,7 +99,7 @@ namespace motor_control
 
 
         direction(speed > 0);
-        speed_value += (int)pid;
+        speed_value = abs((int)pid); // since direction isnt set here this only the speed 
         speed_value = (speed_value > 255) ? 255 : speed_value;
         speed_value = (speed_value < 0) ? 0 : speed_value;
 
