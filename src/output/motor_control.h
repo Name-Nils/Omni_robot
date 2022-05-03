@@ -90,6 +90,7 @@ namespace motor_control
         uint32_t current_time = millis();
         static uint32_t last_time = current_time;
         static double int_error = 0.0;
+        if (int_error == NAN) int_error = 0; // might work to fix the variable and set it to a usable value
         // need a motor control and direction 
         double error = speed_mm_s - speed;
         int_error += error * (double)((current_time - last_time) / 1000.0);
