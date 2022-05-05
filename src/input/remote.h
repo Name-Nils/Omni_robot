@@ -11,6 +11,7 @@ class Input
     uint16_t timeout = 30000;
     uint16_t largest = 20000;
     uint16_t smallest = 10000;
+    uint16_t divide = 10000;
 
 public:
     Input() = default;
@@ -32,6 +33,7 @@ public:
     {
         unsigned long read = pulseIn(pin, true, timeout);
         read += -(((largest - smallest) / 2) + smallest);
+        read /= divide;
         data = read;
         return data;
     }
