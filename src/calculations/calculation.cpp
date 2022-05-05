@@ -5,3 +5,12 @@
 
 Remote remote(A1, A2, A3, A4, A5);
 namespace Motors {extern motor_control::Motor m1, m2, m3;} // namespace Motors
+
+enum State {receiver, usb}; // receiver is the same thing as the remote
+State state = receiver; 
+
+
+namespace Calculation
+{
+    
+} // namespace Calculation

@@ -20,13 +20,9 @@ void loop()
 {
   Motors::m1.update_data();
 
-  double wantes_position = map(analogRead(A7), 0, 1024, -2000, 2000);
+  double wantes_position = map(analogRead(A7), 0, 1024, -150, 150);
   Motors::m1.set_speed(wantes_position);
-  Serial.print(wantes_position);
   
-  Serial.print("   ");
-  Motors::m1.print();
-
 
   delay(10);
 }
