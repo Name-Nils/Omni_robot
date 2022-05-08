@@ -2,7 +2,23 @@
 
 namespace motor_control
 {
-    class Motor
+    struct static_data // is there any other way to have static data in a method? (only did the inheritance to make sure that it was clear that this data is static inside of the methods)
+    {
+    protected: 
+        // update data
+            uint32_t last_time_update_data = micros();
+            double last_position = 0;
+            const static int avg_size = 4;
+            double speed_smoothing[avg_size];
+            int avg_index = 0;
+
+        // confine encoder speed
+            uint32_t last_time_confine_speed = micros();
+            double last_error = 0;
+            double I_error = 0;
+    };
+
+    class Motor : public static_data
     {
     private:
         // private pins

@@ -19,10 +19,13 @@ void setup()
 void loop()
 {
   Motors::m1.update_data();
+  Motors::m2.update_data();
+  Motors::m3.update_data();
 
   double wantes_position = map(analogRead(A7), 0, 1024, -150, 150);
-  Motors::m1.set_speed(wantes_position);
-  
+  Motors::m2.set_speed(wantes_position);
 
-  delay(10);
+  Motors::m1.set_speed(wantes_position);
+  Motors::m3.set_speed(wantes_position);
+
 }

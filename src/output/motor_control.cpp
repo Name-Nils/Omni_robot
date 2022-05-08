@@ -3,7 +3,7 @@
 
 namespace Motors
 {
-    motor_control::Motor m1(8, 9, 10, 2, 3), m2(0, 0, 0, 4, 5), m3(0, 0, 0, 6, 7);
+    motor_control::Motor m1(A2, A1, 6, 2, 4), m2(13, A0, 5, 9, 10), m3(11, 12, 3, 7, 8);
 } // namespace Motors
 
 namespace Encoder_interrrupts
@@ -60,6 +60,11 @@ namespace motor_control
         this->speed_pin = speed_pin;
         this->encoder_pin_a = encoder_pin_a;
         this->encoder_pin_b = encoder_pin_b;
+
+        pinMode(M1, OUTPUT);
+        pinMode(M1, OUTPUT);
+        pinMode(speed_pin, OUTPUT);
+        pinMode(encoder_pin_b, INPUT);
     }
 
     void Motor::print()
@@ -68,6 +73,8 @@ namespace motor_control
         Serial.print(absolute_position_mm);
         Serial.print("]   Speed [");
         Serial.print(speed_mm_s);
+        Serial.print("]   A speed [");
+        Serial.print(speed_value);
         Serial.println("]");
     }
     void Motor::update_data()
@@ -77,16 +84,10 @@ namespace motor_control
         const double wheel_diameter = 120; // mm
 
         uint32_t current_time = micros();
-        static uint32_t last_time = current_time;
-        static double last_position = absolute_position_mm;
 
         absolute_position_mm = (encoder_position / (gear_ratio * encoder_reads_per_rotation)) * (wheel_diameter * PI);
 
-
-        const int avg_size = 4;
-        static double speed_smoothing[avg_size];
-        static int avg_index = 0;
-        speed_smoothing[avg_index] = (absolute_position_mm - last_position) / (current_time - last_time) * 1.0e6;
+        speed_smoothing[avg_index] = (absolute_position_mm - last_position) / (current_time - last_time_update_data) * 1.0e6;
         avg_index ++;
         if (avg_index >= avg_size) avg_index = 0;
 
@@ -98,7 +99,7 @@ namespace motor_control
         speed_mm_s = avg_total / avg_size;
 
 
-        last_time = current_time;
+        last_time_update_data = current_time;
         last_position = absolute_position_mm;
     }
     void Motor::direction(bool direction)
@@ -121,14 +122,10 @@ namespace motor_control
         const double D = 0.0;
 
         uint32_t current_time = micros();
-        static uint32_t last_time = current_time;
-        double delta_seconds = (current_time - last_time) / 1.0e06;
-        last_time = current_time;
         
-        static double last_error = 0;
-        if (isnan(last_error)) last_error = 0;
-        static double I_error = 0;
-        if (isnan(I_error)) I_error = 0;
+        double delta_seconds = (current_time - last_time_confine_speed) / 1.0e06;
+        last_time_confine_speed = current_time;
+        
 
         double P_error = speed - speed_mm_s;
         I_error += P_error * delta_seconds;
@@ -138,14 +135,13 @@ namespace motor_control
 
 
         double pid = P_error * P + I_error * I + D * D_error;
-        speed_value = fabs(pid);
-        speed_value = (speed_value > 255.0) ? 255.0 : speed_value;
+        speed_value = ((int)fabs(pid) > 255) ? 255 : (int)fabs(pid);
 
         direction(pid > 0.0);
         analogWrite(speed_pin, speed_value);
     }
     double Motor::confine_encoder_absolute(double wanted_position, double threshold)
-    {
+    { // will not work for more than one motot at a time with the current static data members
         if (abs(wanted_position - absolute_position_mm) <= threshold) 
         {
             speed_value = 0;
