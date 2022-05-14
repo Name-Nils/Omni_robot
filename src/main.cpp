@@ -9,6 +9,11 @@ namespace Encoder_interrrupts
 {
   void init();
 } // namespace Encoder_interrupts
+namespace Calculation
+{
+      void remote_control();
+} // namespace Calculations
+
 
 void setup()
 {
@@ -17,15 +22,30 @@ void setup()
 }
 
 void loop()
-{
+{/*
   Motors::m1.update_data();
   Motors::m2.update_data();
   Motors::m3.update_data();
 
-  double wantes_position = map(analogRead(A7), 0, 1024, -150, 150);
-  Motors::m2.set_speed(wantes_position);
 
+  static double positions[5];
+  static int index = 0;
+  positions[index] = map(pulseIn(A7, HIGH, 30000), 1000, 2000, -150, 150);
+  index ++;
+  index = (index >= 5) ? 0 : index;
+
+  double wantes_position = 0;
+  for (int i = 0; i < 5; i++)
+  {
+    wantes_position += positions[i];
+  }
+  wantes_position /= 5;
+
+  Serial.println(wantes_position);
   Motors::m1.set_speed(wantes_position);
+  Motors::m2.set_speed(wantes_position);
   Motors::m3.set_speed(wantes_position);
-
+*/ 
+  
+  Calculation::remote_control();
 }

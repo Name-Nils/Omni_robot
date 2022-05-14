@@ -117,8 +117,8 @@ namespace motor_control
     }
     double Motor::confine_encoder_speed(double speed)
     {
-        const double P = 1.5;
-        const double I = 3.0;
+        const double P = 0.6;
+        const double I = 1.0;
         const double D = 0.0;
 
         uint32_t current_time = micros();
@@ -132,7 +132,6 @@ namespace motor_control
         double D_error = 0;
         if (P_error - last_error != 0.0) D_error = (P_error - last_error) / delta_seconds;
         last_error = P_error;
-
 
         double pid = P_error * P + I_error * I + D * D_error;
         speed_value = ((int)fabs(pid) > 255) ? 255 : (int)fabs(pid);

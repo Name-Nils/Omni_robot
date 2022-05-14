@@ -7,11 +7,8 @@ class Input
 {
     int pin;
     double data; // stored in variable between 0 and 1 or -1 and 1
-
-    uint16_t timeout = 30000;
-    uint16_t largest = 20000;
-    uint16_t smallest = 10000;
-    uint16_t divide = 10000;
+    
+    const static double deadzone = 0.1;
 
 public:
     Input() = default;
@@ -31,10 +28,11 @@ public:
     }
     double update()
     {
-        unsigned long read = pulseIn(pin, true, timeout);
-        read += -(((largest - smallest) / 2) + smallest);
-        read /= divide;
-        data = read;
+        long read = pulseIn(pin, true, 30000);
+        read = read - 1500;
+        data = read / 500.0;
+
+        data = (fabs(data) > deadzone) ? data : 0.0;
         return data;
     }
 };
@@ -44,10 +42,9 @@ enum Stick
     forward_reverse,
     left_right,
     turning,
-    switch_one,
-    switch_two
+    switch_
 };
-const int amount_inputs = switch_two;
+const int amount_inputs = switch_ + 1;
 
 class Remote
 {
@@ -56,17 +53,17 @@ public:
     Vector right_stick;
     Vector left_stick;
 
-    Remote(int s1, int s2, int s3, int s4, int s5)
+    Remote(int s1, int s2, int s3, int s4)
     {
-        inputs[forward_reverse] = Input(s1);
-        inputs[left_right] = Input(s2);
+        inputs[forward_reverse] = Input(s2);
+        inputs[left_right] = Input(s1);
         inputs[turning] = Input(s3);
-        inputs[switch_one] = Input(s4);
-        inputs[switch_two] = Input(s5);
+        inputs[switch_] = Input(s4);
     }
-    void update()
+    void update(int amount)
     {
-        for(int i = 0; i < amount_inputs; i++)
+        amount = (amount > amount_inputs) ? amount_inputs : amount;
+        for(int i = 0; i < amount; i++) // temp
         {
             inputs[i].update();
         }
