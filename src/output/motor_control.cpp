@@ -168,6 +168,11 @@ namespace motor_control
 
         return wanted_position - absolute_position_mm; // returns the distance left to wanted position
     }
+    void Motor::disable()
+    {
+        digitalWrite(M1, false);
+        digitalWrite(M2, false);
+    }
     bool Motor::go(double wanted_position)
     {
         if (confine_encoder_absolute(wanted_position, 10) <= 10)

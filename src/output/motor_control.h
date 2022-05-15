@@ -44,7 +44,7 @@ namespace motor_control
         // public functions
         Motor(int M1, int M2, int speed_pin, int encoder_pin_a, int encoder_pin_b);
 
-
+        void disable();
         void print();
         void update_data();
         bool go(double wanted_position);

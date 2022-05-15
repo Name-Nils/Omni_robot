@@ -23,6 +23,12 @@ void setup()
 
 void loop()
 {
-  //Calculation::remote_control();
-  Calculation::usb_control();
+  if (digitalRead(A4))
+  {
+    Calculation::remote_control();
+  }
+  else
+  {
+    Calculation::usb_control();
+  }
 }

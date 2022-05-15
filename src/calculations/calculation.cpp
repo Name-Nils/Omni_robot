@@ -4,7 +4,7 @@
 #include "output/motor_control.h"
 #include "../input/usb_control.h"
 
-Remote remote(A7, A6, A5, A4);
+Remote remote(A7, A6, A5, A3);
 namespace Motors {extern motor_control::Motor m1, m2, m3;} // namespace Motors
 
 enum State {receiver, usb}; // receiver is the same thing as the remote
@@ -68,9 +68,18 @@ namespace Calculation
         Motors::m2.update_data();
         Motors::m3.update_data();
 
-        Motors::m1.set_speed(m1);
-        Motors::m2.set_speed(m2);
-        Motors::m3.set_speed(m3);
+        if (m1 == 0.0 && m2 == 0.0 && m3 == 0.0) 
+        {
+            Motors::m1.disable();
+            Motors::m2.disable();
+            Motors::m3.disable();
+        }
+        else
+        {
+            Motors::m1.set_speed(m1);
+            Motors::m2.set_speed(m2);
+            Motors::m3.set_speed(m3);
+        }
 
         if (Serial.available() == 0) return;
 
@@ -83,7 +92,6 @@ namespace Calculation
             return;
         last_serial = Usb_control::serial;
 
-        
         motor_speed_calc(110, 
         -Usb_control::serial.speed_wanted.size,
         PI - Usb_control::serial.speed_wanted.angle,

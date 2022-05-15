@@ -7,9 +7,9 @@ public:
     double size = 0;
 
     Vector() = default;
-    Vector(const Vector& v);
-    Vector(double angle, double size);
-};
+    Vector(const Vector&);
+    Vector(double, double); // dont have to define the name of the variables in the definition
+};  // although defining the names can sometimes help with understanding the functionality
 
 inline Vector::Vector(const Vector& v)
 {
