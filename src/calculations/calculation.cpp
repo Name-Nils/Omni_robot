@@ -2,12 +2,18 @@
 #include "Vector.h"
 #include "input/remote.h"
 #include "output/motor_control.h"
+#include "../input/usb_control.h"
 
 Remote remote(A7, A6, A5, A4);
 namespace Motors {extern motor_control::Motor m1, m2, m3;} // namespace Motors
 
 enum State {receiver, usb}; // receiver is the same thing as the remote
 State state = receiver; 
+
+namespace Usb_control
+{
+    Parsing serial;
+} // namespace Usb_control
 
 
 namespace Calculation
@@ -52,6 +58,36 @@ namespace Calculation
 
     void usb_control()
     {
+        static bool init = Usb_control::serial.init();
+
+        static double m1 = 0, m2 = 0, m3 = 0;
+        static Usb_control::Parsing last_serial;
         // serial reading and then interpreting
+        
+        Motors::m1.update_data();
+        Motors::m2.update_data();
+        Motors::m3.update_data();
+
+        Motors::m1.set_speed(m1);
+        Motors::m2.set_speed(m2);
+        Motors::m3.set_speed(m3);
+
+        if (Serial.available() == 0) return;
+
+        Usb_control::serial.parse(String(Serial.readStringUntil('\n')).c_str());
+
+        if (
+            Usb_control::serial.rotation_wanted == last_serial.rotation_wanted && 
+            Usb_control::serial.speed_wanted.angle == last_serial.speed_wanted.angle && 
+            Usb_control::serial.speed_wanted.size == last_serial.speed_wanted.size) 
+            return;
+        last_serial = Usb_control::serial;
+
+        
+        motor_speed_calc(110, 
+        -Usb_control::serial.speed_wanted.size,
+        PI - Usb_control::serial.speed_wanted.angle,
+        Usb_control::serial.rotation_wanted, 
+        &m1, &m2, &m3);
     }
 } // namespace Calculation

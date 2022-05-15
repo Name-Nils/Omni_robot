@@ -11,12 +11,12 @@ public:
     Vector(double angle, double size);
 };
 
-Vector::Vector(const Vector& v)
+inline Vector::Vector(const Vector& v)
 {
     angle = v.angle;
     size = v.size;
 }
-Vector::Vector(double angle, double size)
+inline Vector::Vector(double angle, double size)
 {
     this->angle = angle;
     this->size = size;
