@@ -51,9 +51,9 @@ namespace Calculation
         Motors::m1.update_data();
         Motors::m2.update_data();
         Motors::m3.update_data();
-        Motors::m1.set_speed(m1);
-        Motors::m2.set_speed(m2);
-        Motors::m3.set_speed(m3);
+        Motors::m1.set_speed(m1, false);
+        Motors::m2.set_speed(m2, false);
+        Motors::m3.set_speed(m3, false);
     }
 
     void usb_control()
@@ -68,18 +68,16 @@ namespace Calculation
         Motors::m2.update_data();
         Motors::m3.update_data();
 
+        bool disabled = false;
         if (m1 == 0.0 && m2 == 0.0 && m3 == 0.0) 
         {
-            Motors::m1.disable();
-            Motors::m2.disable();
-            Motors::m3.disable();
+            disabled = true;
         }
-        else
-        {
-            Motors::m1.set_speed(m1);
-            Motors::m2.set_speed(m2);
-            Motors::m3.set_speed(m3);
-        }
+
+        Motors::m1.set_speed(m1, disabled);
+        Motors::m2.set_speed(m2, disabled);
+        Motors::m3.set_speed(m3, disabled);
+
 
         if (Serial.available() == 0) return;
 

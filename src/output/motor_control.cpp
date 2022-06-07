@@ -115,7 +115,7 @@ namespace motor_control
             digitalWrite(M2, true);
         }
     }
-    double Motor::confine_encoder_speed(double speed)
+    double Motor::confine_encoder_speed(double speed, bool disabled)
     {
         const double P = 0.6;
         const double I = 1.0;
@@ -126,15 +126,22 @@ namespace motor_control
         double delta_seconds = (current_time - last_time_confine_speed) / 1.0e06;
         last_time_confine_speed = current_time;
         
+        double pid = 0;
+        if (!disabled)
+        {
+            double P_error = speed - speed_mm_s;
+            I_error += P_error * delta_seconds;
+            double D_error = 0;
+            if (P_error - last_error != 0.0) D_error = (P_error - last_error) / delta_seconds;
+            last_error = P_error;
 
-        double P_error = speed - speed_mm_s;
-        I_error += P_error * delta_seconds;
-        double D_error = 0;
-        if (P_error - last_error != 0.0) D_error = (P_error - last_error) / delta_seconds;
-        last_error = P_error;
-
-        double pid = P_error * P + I_error * I + D * D_error;
-        speed_value = ((int)fabs(pid) > 255) ? 255 : (int)fabs(pid);
+            pid = P_error * P + I_error * I + D * D_error;
+            speed_value = ((int)fabs(pid) > 255) ? 255 : (int)fabs(pid);
+        }
+        else
+        {
+            speed_value = 0;
+        }
 
         direction(pid > 0.0);
         analogWrite(speed_pin, speed_value);
@@ -168,19 +175,14 @@ namespace motor_control
 
         return wanted_position - absolute_position_mm; // returns the distance left to wanted position
     }
-    void Motor::disable()
-    {
-        digitalWrite(M1, false);
-        digitalWrite(M2, false);
-    }
     bool Motor::go(double wanted_position)
     {
         if (confine_encoder_absolute(wanted_position, 10) <= 10)
             return true;
         return false;
     }
-    void Motor::set_speed(double speed)
+    void Motor::set_speed(double speed, bool disabled)
     {
-        confine_encoder_speed(speed);
+        confine_encoder_speed(speed, disabled);
     }
 } // namespace motor_control

@@ -31,7 +31,7 @@ namespace motor_control
 
         // private functions
         void direction(bool direction);
-        double confine_encoder_speed(double speed);
+        double confine_encoder_speed(double, bool);
         double confine_encoder_absolute(double wanted_pos, double threshold);
 
     public:
@@ -48,6 +48,6 @@ namespace motor_control
         void print();
         void update_data();
         bool go(double wanted_position);
-        void set_speed(double speed);
+        void set_speed(double, bool);
     };
 }
