@@ -54,6 +54,6 @@ namespace Usb_control
         Parsing(const Parsing &p);
         bool init();
 
-        void parse(const char *string);
+        bool parse(const char *string);
     };
 } // namespace Usb_control

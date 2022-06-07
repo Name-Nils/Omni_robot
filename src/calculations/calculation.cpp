@@ -5,20 +5,26 @@
 #include "../input/usb_control.h"
 
 Remote remote(A7, A6, A5, A3);
-namespace Motors {extern motor_control::Motor m1, m2, m3;} // namespace Motors
+namespace Motors
+{
+    extern motor_control::Motor m1, m2, m3;
+} // namespace Motors
 
-enum State {receiver, usb}; // receiver is the same thing as the remote
-State state = receiver; 
+enum State
+{
+    receiver,
+    usb
+}; // receiver is the same thing as the remote
+State state = receiver;
 
 namespace Usb_control
 {
     Parsing serial;
 } // namespace Usb_control
 
-
 namespace Calculation
 {
-    void motor_speed_calc(double wheel_distance, double speed, double angle, double rotation, double* m1, double* m2, double* m3)
+    void motor_speed_calc(double wheel_distance, double speed, double angle, double rotation, double *m1, double *m2, double *m3)
     {
         static float m1_pos = PI / 2;
         static float m2_pos = m1_pos + (PI / 3 * 2);
@@ -36,7 +42,6 @@ namespace Calculation
         const double speed_multiplier = 300;
 
         remote.update(3);
-
 
         // left stick rotation fixing   this rotation value should be added on to all the motors speed so that the robot will rotate aswell as move in the desired direction
         rotation = (remote.left_stick.size * rotation_speed_multiplier);
@@ -63,13 +68,13 @@ namespace Calculation
         static double m1 = 0, m2 = 0, m3 = 0;
         static Usb_control::Parsing last_serial;
         // serial reading and then interpreting
-        
+
         Motors::m1.update_data();
         Motors::m2.update_data();
         Motors::m3.update_data();
 
         bool disabled = false;
-        if (m1 == 0.0 && m2 == 0.0 && m3 == 0.0) 
+        if (m1 == 0.0 && m2 == 0.0 && m3 == 0.0)
         {
             disabled = true;
         }
@@ -78,22 +83,29 @@ namespace Calculation
         Motors::m2.set_speed(m2, disabled);
         Motors::m3.set_speed(m3, disabled);
 
-
-        if (Serial.available() == 0) return;
-
-        Usb_control::serial.parse(String(Serial.readStringUntil('\n')).c_str());
-
-        if (
-            Usb_control::serial.rotation_wanted == last_serial.rotation_wanted && 
-            Usb_control::serial.speed_wanted.angle == last_serial.speed_wanted.angle && 
-            Usb_control::serial.speed_wanted.size == last_serial.speed_wanted.size) 
+        if (Serial.available() == 0)
             return;
-        last_serial = Usb_control::serial;
 
-        motor_speed_calc(110, 
-        -Usb_control::serial.speed_wanted.size,
-        PI - Usb_control::serial.speed_wanted.angle,
-        Usb_control::serial.rotation_wanted, 
-        &m1, &m2, &m3);
+        if (!Usb_control::serial.parse(String(Serial.readStringUntil('\n')).c_str()))
+            return;
+
+        switch ((int)round(Usb_control::serial.Identifiers[Usb_control::Mode].data))
+        {
+        case Usb_control::RELATIVE:
+            // add to the absolute coordinates
+            break;
+        case Usb_control::ABSOLUTE:
+            // set the absolute coordinates
+            break;
+        case Usb_control::SPEED:
+            motor_speed_calc(110,
+                             -Usb_control::serial.speed_wanted.size,
+                             PI - Usb_control::serial.speed_wanted.angle,
+                             Usb_control::serial.rotation_wanted,
+                             &m1, &m2, &m3);
+            break;
+        default:
+            break;
+        }
     }
 } // namespace Calculation

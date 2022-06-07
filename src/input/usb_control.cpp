@@ -45,9 +45,10 @@ namespace Usb_control
         return true;
     }
 
-    void Parsing::parse(const char * string)
+    bool Parsing::parse(const char * string)
     {
         static const char * numbers = "1234567890-.";
+        bool change = false;
 
         int length = 0;
         while (string[length] != '\0') length ++;
@@ -70,7 +71,9 @@ namespace Usb_control
                 {
                     if (current_number != "")
                     {
-                        current_id->data = current_number.toDouble();
+                        float number = current_number.toDouble();
+                        if (current_id->data != number) change = true;
+                        current_id->data = number;
                         current_number = "";
                     }
 
@@ -81,5 +84,7 @@ namespace Usb_control
         }
         speed_wanted = Vector(Identifiers[Identifiers_names::angle].data, Identifiers[Identifiers_names::size].data);
         rotation_wanted = Identifiers[Identifiers_names::rotation].data;
+
+        return change;
     }
 } // namespace Usb_control

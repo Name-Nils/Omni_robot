@@ -148,39 +148,9 @@ namespace motor_control
     }
     double Motor::confine_encoder_absolute(double wanted_position, double threshold)
     { // will not work for more than one motot at a time with the current static data members
-        if (abs(wanted_position - absolute_position_mm) <= threshold) 
-        {
-            speed_value = 0;
-            analogWrite(speed_pin, speed_value);
-            return wanted_position - absolute_position_mm;
-        }
-
-        // Pid
-        const double P = 1.5;
-        const double I = 0.05;
-        static double integral_error = 0;
-        uint32_t current_speed = millis();
-        static uint32_t last_speed = current_speed;
-
-        double error = wanted_position - absolute_position_mm;
-        integral_error += error * (current_speed - last_speed) / 1000;
-        double pid = error * P + integral_error * I;
-
-        last_speed = current_speed;
-
-        direction(pid > 0);
-        speed_value = pid;
-
-        analogWrite(speed_pin, speed_value);
-
-        return wanted_position - absolute_position_mm; // returns the distance left to wanted position
+        
     }
-    bool Motor::go(double wanted_position)
-    {
-        if (confine_encoder_absolute(wanted_position, 10) <= 10)
-            return true;
-        return false;
-    }
+
     void Motor::set_speed(double speed, bool disabled)
     {
         confine_encoder_speed(speed, disabled);

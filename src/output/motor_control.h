@@ -16,6 +16,9 @@ namespace motor_control
             uint32_t last_time_confine_speed = micros();
             double last_error = 0;
             double I_error = 0;
+
+        // confine encoder Absolute
+        
     };
 
     class Motor : public static_data
