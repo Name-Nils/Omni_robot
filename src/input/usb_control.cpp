@@ -24,67 +24,8 @@ namespace Helper
 
 namespace Usb_control
 {
-    Parsing::Parsing(const Parsing & p)
+    void Parsing::parse(const char * data)
     {
-        speed_wanted = p.speed_wanted;
-        rotation_wanted = p.rotation_wanted;
-
-        for (int i = 0; i < p.amount_identifiers; i++)
-        {
-            Identifiers[i] = p.Identifiers[i];
-        }
-    }
-    bool Parsing::init()
-    {
-        Identifiers[Identifiers_names::Mode] = Identifier('G');
-        Identifiers[Identifiers_names::Modifier] = Identifier('H');
-        Identifiers[Identifiers_names::rotation] = Identifier('R');
-        Identifiers[Identifiers_names::size] = Identifier('S');
-        Identifiers[Identifiers_names::angle] = Identifier('A');
-
-        return true;
-    }
-
-    bool Parsing::parse(const char * string)
-    {
-        static const char * numbers = "1234567890-.";
-        bool change = false;
-
-        int length = 0;
-        while (string[length] != '\0') length ++;
-
-        Identifier *current_id;
-        String current_number  = "";
-
-        for (int i = 0; i < length + 1; i++)
-        {
-            if (i != length && Helper::regex(numbers, string[i]))
-            {
-                current_number += string[i];
-                continue;            
-            }
-
-
-            for (int id = 0; id < amount_identifiers; id++)
-            {
-                if (string[i] == Identifiers[id].id || i == length)
-                {
-                    if (current_number != "")
-                    {
-                        float number = current_number.toDouble();
-                        if (current_id->data != number) change = true;
-                        current_id->data = number;
-                        current_number = "";
-                    }
-
-                    current_id = &Identifiers[id];
-                    break;
-                }
-            }
-        }
-        speed_wanted = Vector(Identifiers[Identifiers_names::angle].data, Identifiers[Identifiers_names::size].data);
-        rotation_wanted = Identifiers[Identifiers_names::rotation].data;
-
-        return change;
+        
     }
 } // namespace Usb_control
