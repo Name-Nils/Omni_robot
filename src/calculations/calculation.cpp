@@ -4,6 +4,16 @@
 #include "output/motor_control.h"
 #include "../input/usb_control.h"
 
+namespace Usb
+{
+    extern Usb_control::Parsing control;
+} // namespace Usb_control
+namespace Motor
+{
+    extern motor_control::Motor m1, m2, m3;
+} // namespace Motor
+
+
 namespace Calculation
 {
     void motor_speed_calc(double wheel_distance, double speed, double angle, double rotation, double *m1, double *m2, double *m3)
@@ -17,5 +27,34 @@ namespace Calculation
         *m3 = speed * sin(m3_pos - angle) + (wheel_distance * rotation);
     }
 
-    
+    void usb_control()
+    {
+        Motor::m1.update_data();
+        Motor::m2.update_data();
+        Motor::m3.update_data();        
+
+        if (Serial.available() > 0)
+        {
+            Usb::control.parse(Serial.readStringUntil('\n').c_str());
+        }
+
+
+        double *movement = Usb::control.get_movement(); // movement in x and y coordinates
+        
+
+
+        bool *settings = Usb::control.get_settings();
+        if (settings[Usb_control::ABSOLUTE])
+        {
+
+        }
+        else if (settings[Usb_control::RELATIVE])
+        {
+
+        }
+        else if (settings[Usb_control::SPEED])
+        {
+
+        }
+    }
 } // namespace Calculation
