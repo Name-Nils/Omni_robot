@@ -24,6 +24,11 @@ namespace Helper
 } // namespace Helper
 
 
+namespace Usb
+{
+    Usb_control::Parsing control;
+} // namespace Usb
+
 
 namespace Usb_control
 {

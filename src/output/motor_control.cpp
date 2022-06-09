@@ -80,6 +80,24 @@ namespace motor_control
         pinMode(encoder_pin_b, INPUT);
     }
 
+    void Motor::update_data()
+    {
+        const double gear_ratio = 98.8;
+        const double encoder_reads_per_rotation = 11;
+        const double wheel_diameter = 120; // mm
+
+        uint32_t current_time = micros();
+        double delta_time = (current_time - update_data_last_time) / 1.0e6;
+
+        absolute_position_mm = (encoder_position / (gear_ratio * encoder_reads_per_rotation)) * (wheel_diameter * PI);
+
+        double current_speed = (absolute_position_mm - update_data_last_position) / delta_time;
+        speed_mm_s = update_data_speed_smoothing.push(current_speed);
+
+        update_data_last_time = current_time;
+        update_data_last_position = absolute_position_mm;
+    }
+
     void Motor::direction(bool dir)
     {
         if (dir)
