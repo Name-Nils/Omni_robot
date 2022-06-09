@@ -1,5 +1,4 @@
 #pragma once
-#include "Vector.h"
 
 namespace Usb_control
 {
@@ -9,12 +8,12 @@ namespace Usb_control
         RELATIVE,
         SPEED
     };
-    const char * Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
+    static const char * Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
         "A",
         "E",
         "S"
     };
-    const int amount_settings = sizeof(Settings_chars) / sizeof(char);
+    static const int amount_settings = sizeof(Settings_chars) / sizeof(char);
 
     enum Movement
     {
@@ -22,12 +21,12 @@ namespace Usb_control
         X,
         Y
     };
-    const char * Movement_chars[] = {
+    static const char * Movement_chars[] = {
         "R",
         "X",
         "Y"
     };
-    const int amount_movement = sizeof(Movement_chars) / sizeof(char);
+    static const int amount_movement = sizeof(Movement_chars) / sizeof(char);
 
 
     template<typename gen>
@@ -61,7 +60,10 @@ namespace Usb_control
         Ids() = default;
         Ids(const Ids& i)
         {
-            this->identifier = i.identifier;
+            for (int a = 0; a < length; a++)
+            {
+                this->identifier[a] = i.identifier[a];
+            }
         }
         Ids(const char * ids[length])
         {
@@ -87,5 +89,7 @@ namespace Usb_control
         }
 
         void parse(const char *);
+        bool* get_settings();
+        double* get_movement(); // can use the enums to go throught the settings witch are loaded into these arrays that are returned
     };
 } // namespace Usb_control

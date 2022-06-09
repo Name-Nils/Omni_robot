@@ -21,8 +21,9 @@ namespace motor_control
         uint8_t speed_value = 0;
 
         // private functions
-        void direction(bool direction);
-
+        void direction(bool);
+        void move_speed(bool dir, double speed);
+        bool move_absolute(double wanted_pos, double speed, double threshold, double accel); // will return true if is at position
     public:
         // public pins
         int encoder_pin_a, encoder_pin_b; // need to be public for the interrupt function that changes the encoder position
