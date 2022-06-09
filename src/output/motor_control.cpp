@@ -107,20 +107,18 @@ namespace motor_control
         const double I = 1.0;
         const double D = 0.0;
 
-        static uint32_t last_time = micros();
         uint32_t current_time = micros();
-        double delta_seconds = (current_time - last_time) / 1.0e6;
+        double delta_seconds = (current_time - move_speed_last_time) / 1.0e6;
+        if (delta_seconds > 1.0) delta_seconds = 0.0; // in case of non use of this function the delta seconds will be reset to 0
 
-        static double last_error = 0; 
         double pid = 0;
         double P_error = speed - speed_mm_s;
-        static double I_error = 0;
-        I_error += P_error * delta_seconds;
+        move_speed_I_error += P_error * delta_seconds;
         double D_error = 0; 
-        if (P_error - last_error != 0.0) D_error = (P_error - last_error) / delta_seconds;
-        last_error = P_error;
+        if (P_error - move_speed_last_error != 0.0) D_error = (P_error - move_speed_last_error) / delta_seconds;
+        move_speed_last_error = P_error;
 
-        pid = P_error * P + I_error * I + D_error * D;
+        pid = P_error * P + move_speed_I_error * I + D_error * D;
         speed_value = (int)round(fabs(Helper::clamp(pid, -255.0, 255.0)));
 
         direction(pid > 0.0);
@@ -130,25 +128,38 @@ namespace motor_control
     bool Motor::move_absolute(double wanted_pos, double speed, double threshold, double acceleration)
     {
         // everything is in mm and seconds (wanted_pos is in mm and accereration is mm/s^2)
-        static uint32_t last_time = micros();
         uint32_t current_time = micros();
-        double delta_seconds = (current_time - last_time) / 1.0e6; // so that the number is in seconds
-        last_time = micros(); // after using it to calculate the diff it can be restored to the current time
+        double delta_seconds = (current_time - move_absolute_last_time) / 1.0e6; // so that the number is in seconds
+        move_absolute_last_time = micros(); // after using it to calculate the diff it can be restored to the current time
 
         double amount_left = wanted_pos - absolute_position_mm;
-        static double current_speed = 0; // speed may not surpass the speed value
+        if (fabs(amount_left) < threshold) return true;
 
-        double dist_to_decelerate = pow(current_speed, 2) / (2 * acceleration);
+        double dist_to_decelerate = pow(move_absolute_current_speed, 2) / (2 * acceleration);
         if (dist_to_decelerate > fabs(amount_left))
         {
             // calculate the speed that should be had at this point
-            current_speed = sqrt(2 * acceleration * fabs(amount_left));
-            Helper::clamp(current_speed, 0.0, speed);
+            move_absolute_current_speed = sqrt(2 * acceleration * fabs(amount_left));
+            Helper::clamp(move_absolute_current_speed, 0.0, speed);
         }
         else
         {
-            current_speed += delta_seconds * acceleration;
-            Helper::clamp(current_speed, 0.0, speed);
+            move_absolute_current_speed += delta_seconds * acceleration;
+            Helper::clamp(move_absolute_current_speed, 0.0, speed);
         }
+
+        move_speed(amount_left > 0.0, move_absolute_current_speed);
+        return false;
+    }
+
+    bool Motor::move_relative(double delta_position, double speed, double threshold, double accel)
+    {
+        if (move_relative_last_delta_position != delta_position)
+        {
+            move_relative_last_absolute_position_mm = absolute_position_mm;
+        }
+        move_absolute(delta_position + move_relative_last_absolute_position_mm, speed, threshold, accel);
+        
+        move_relative_last_delta_position = delta_position;
     }
 } // namespace motor_control
