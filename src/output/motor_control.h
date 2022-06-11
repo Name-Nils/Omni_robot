@@ -90,8 +90,9 @@ namespace motor_control
 
         void update_data();
         void move_speed(bool dir, double speed);
-        bool move_relative(double delta_position, double speed, double threshold, double accel);
-        bool move_absolute(double wanted_pos, double speed, double threshold, double accel); // will return true if is at position
+        bool move_relative(double delta_position, double speed, double threshold, double accel, bool new_move);
+        bool move_absolute(double wanted_pos, double speed, double threshold, double accel, bool new_move); // will return true if is at position
+        void reset_data();
         void disable();
     };
 }

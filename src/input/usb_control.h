@@ -6,12 +6,18 @@ namespace Usb_control
     {
         ABSOLUTE,
         RELATIVE,
-        SPEED
+        VELOCITY,
+        RESET_POS,
+        MOTOR,
+        GETPOS
     };
     static const char * Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
         "A",
         "E",
-        "S"
+        "S",
+        "T",
+        "M",
+        "G"
     };
     static const int amount_settings = sizeof(Settings_chars) / sizeof(char);
 
@@ -19,12 +25,18 @@ namespace Usb_control
     {
         ROTATION, // for simpler calculations the movement system has been switched to x and y coordinates instead of polar form, although this is easy to use and switch between
         X,
-        Y
+        Y,
+        SPEED,
+        ACCEL,
+        Z
     };
     static const char * Movement_chars[] = {
         "R",
         "X",
-        "Y"
+        "Y",
+        "V",
+        "P",
+        "Z"
     };
     static const int amount_movement = sizeof(Movement_chars) / sizeof(char);
 

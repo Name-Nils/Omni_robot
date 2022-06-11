@@ -116,6 +116,18 @@ namespace motor_control
     {
         digitalWrite(M1, false);
         digitalWrite(M2, false);
+        speed_value = 0;
+        speed_mm_s = 0;
+    }
+
+    void Motor::reset_data()
+    {
+        absolute_position_mm = 0; // this should reset the position and lead to new m
+        update_data();
+        speed_mm_s = 0;
+
+        move_relative_last_absolute_position_mm = 0;
+        move_absolute_current_speed = 0;
     }
 
     void Motor::move_speed(bool dir, double speed)
@@ -143,9 +155,10 @@ namespace motor_control
         analogWrite(speed_pin, speed_value);
     }
 
-    bool Motor::move_absolute(double wanted_pos, double speed, double threshold, double acceleration)
+    bool Motor::move_absolute(double wanted_pos, double speed, double threshold, double acceleration, bool new_move)
     {
         // everything is in mm and seconds (wanted_pos is in mm and accereration is mm/s^2)
+        if (new_move) move_absolute_last_time = micros();
         uint32_t current_time = micros();
         double delta_seconds = (current_time - move_absolute_last_time) / 1.0e6; // so that the number is in seconds
         move_absolute_last_time = micros(); // after using it to calculate the diff it can be restored to the current time
@@ -170,13 +183,13 @@ namespace motor_control
         return false;
     }
 
-    bool Motor::move_relative(double delta_position, double speed, double threshold, double accel)
+    bool Motor::move_relative(double delta_position, double speed, double threshold, double accel, bool new_move)
     {
         if (move_relative_last_delta_position != delta_position)
         {
             move_relative_last_absolute_position_mm = absolute_position_mm;
         }
-        move_absolute(delta_position + move_relative_last_absolute_position_mm, speed, threshold, accel);
+        move_absolute(delta_position + move_relative_last_absolute_position_mm, speed, threshold, accel, new_move);
         
         move_relative_last_delta_position = delta_position;
     }

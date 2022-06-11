@@ -6,9 +6,14 @@ namespace Encoder_interrrupts
 {
   void init();
 } // namespace Encoder_interrupts
+namespace Motors
+{
+  extern motor_control::Motor m1,m2,m3;
+} // namespace Motor
+
 namespace Calculation
 {
-  
+  void usb_control();
 } // namespace Calculations
 
 void setup()
@@ -19,4 +24,5 @@ void setup()
 
 void loop()
 {
+  Calculation::usb_control();
 }
