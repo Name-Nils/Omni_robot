@@ -1,4 +1,5 @@
 #pragma once
+#include <Arduino.h>
 
 namespace Usb_control
 {
@@ -11,13 +12,13 @@ namespace Usb_control
         MOTOR,
         GETPOS
     };
-    static const char * Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
-        "A",
-        "E",
-        "S",
-        "T",
-        "M",
-        "G"
+    static const char Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
+        'A',
+        'E',
+        'S',
+        'T',
+        'M',
+        'G'
     };
     static const int amount_settings = sizeof(Settings_chars) / sizeof(char);
 
@@ -30,13 +31,13 @@ namespace Usb_control
         ACCEL,
         Z
     };
-    static const char * Movement_chars[] = {
-        "R",
-        "X",
-        "Y",
-        "V",
-        "P",
-        "Z"
+    static const char Movement_chars[] = {
+        'R',
+        'X',
+        'Y',
+        'V',
+        'P',
+        'Z'
     };
     static const int amount_movement = sizeof(Movement_chars) / sizeof(char);
 
@@ -44,7 +45,7 @@ namespace Usb_control
     template<typename gen>
     struct Id
     {
-        char * id;
+        char id;
         gen data; // can be interpreted as a int or bool later 
         
         Id() = default;
@@ -53,11 +54,11 @@ namespace Usb_control
             this->data = i.data;
             this->id = i.id;
         }
-        Id(char * id)
+        Id(char id)
         {
             this->id = id;
         }
-        Id(char * id, gen data)
+        Id(char id, gen data)
         {
             this->id = id;
             this->data = data;
@@ -77,11 +78,11 @@ namespace Usb_control
                 this->identifier[a] = i.identifier[a];
             }
         }
-        Ids(const char * ids[length])
+        Ids(const char ids[length])
         {
             for (int i = 0; i < length; i++)
             {
-                this->identifier[i] = Id<gen>(ids[i]); // should set the ids to the correct value and in the correct correspinding enum number
+                identifier[i].id = ids[i];
             }
         }
     };
@@ -100,8 +101,25 @@ namespace Usb_control
             this->settings = p.settings;
         }
 
-        void parse(const char *);
+        void parse(const char *, int length);
         bool* get_settings();
         double* get_movement(); // can use the enums to go throught the settings witch are loaded into these arrays that are returned
+    
+        void print_ids()
+        {
+            for (int i = 0; i < amount_movement; i++)
+            {
+                Serial.print(Movement_chars[i]);
+                Serial.print("  ");
+                Serial.println(movement.identifier[i].id);
+            }
+            Serial.println();
+            for (int i = 0; i < amount_settings; i++)
+            {
+                Serial.print(Settings_chars[i]);
+                Serial.print("  ");
+                Serial.println(settings.identifier[i].id);
+            }
+        } 
     };
 } // namespace Usb_control

@@ -31,6 +31,7 @@ public:
     Position(double, double, double, int);
     Position(double, double, int);
     char* string(int, bool, int);
+    void reset();
 };
 
 inline void Position::calculate(int type)
@@ -96,4 +97,9 @@ inline char* Position::string(int type, bool rotation, int digits)
         strcat(rtn, " R");
         strcat(rtn, String(r,digits).c_str());
     }
+}
+
+inline void Position::reset()
+{
+    x = y = r = s = a = 0;
 }

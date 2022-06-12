@@ -19,6 +19,7 @@ namespace Calculation
 void setup()
 {
   Serial.begin(9600);
+  Serial.setTimeout(50);
   Encoder_interrrupts::init(); // set the interrupt functions and pins
 }
 

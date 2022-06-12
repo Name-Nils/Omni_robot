@@ -32,12 +32,11 @@ namespace Usb
 
 namespace Usb_control
 {
-    void Parsing::parse(const char * data)
-    {
-        int length = 0;
-        while (data[length] != '\0') length ++;
+    void Parsing::parse(const char * data, int length)
+    {     
+        print_ids();
 
-        char * current_number = "";
+        String current_number = "";
         bool setting;
         float * movement_ptr;
         bool * settings_ptr;
@@ -46,6 +45,7 @@ namespace Usb_control
             if (Helper::regex(Helper::numerical, data[i]))
             {
                 current_number += data[i];
+                Serial.println(current_number);
                 continue;
             }
 
@@ -55,7 +55,7 @@ namespace Usb_control
                 {
                     if (setting)
                     {
-                        double n = Helper::to_double(current_number);
+                        double n = current_number.toDouble();
                         bool save = false;
                         if (n > 0.5) save = true;
 
@@ -63,7 +63,7 @@ namespace Usb_control
                     }
                     else
                     {
-                        *movement_ptr = Helper::to_double(current_number);
+                        *movement_ptr = current_number.toDouble();
                     }
 
                     current_number = "";
@@ -72,17 +72,28 @@ namespace Usb_control
 
                 for (int s = 0; s < amount_settings; s++)
                 {
-                    if (Helper::regex(settings.identifier[s].id, data[i]))
+                    const char* id = settings.identifier[s].id;
+                    const char d = data[i];
+
+                    Serial.println(String(id) + " == " + String(d));
+
+
+                    if ((const char *)settings.identifier[s].id == data[i] && data[i] != '\0')
                     {
+                        Serial.println("inside !!");
                         setting = true;
                         settings_ptr = &settings.identifier[s].data;
                         break;
                     }
                 }
+                
             
+                
                 for (int m = 0; m < amount_movement; m++)
                 {
-                    if (Helper::regex(movement.identifier[m].id, data[i]))
+                    break;
+                    Serial.println(String(movement.identifier[m].id) + " == " + String(data[i]));
+                    if ((const char *)movement.identifier[m].id == data[i] && data[i] != '\0')
                     {
                         setting = false;
                         movement_ptr = &movement.identifier[m].data;

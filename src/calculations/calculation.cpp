@@ -42,7 +42,23 @@ namespace Calculation
         {
             at_posisiton = false;
             new_move = true;
-            Usb::control.parse(Serial.readStringUntil('\n').c_str());
+
+            const int buffer_size = 50;
+            byte buffer[buffer_size];
+            size_t size = Serial.readBytesUntil('\n', buffer, buffer_size);
+            
+
+            if (buffer[0] != 255)
+            {
+                Usb::control.parse((const char *)buffer, size);
+            }
+            return;
+
+            //Serial.println(read_data);
+        }
+        else
+        {
+            return;
         }
 
         // if the robot rotates then the absolute coordinates cant be calculated only from the absolute rotation of the motors
@@ -52,7 +68,14 @@ namespace Calculation
         static Usb_control::Settings last_setting;
         if (settings[Usb_control::ABSOLUTE])
         {
-            if (last_setting != Usb_control::ABSOLUTE) Motors::m1.reset_data(); Motors::m2.reset_data(); Motors::m3.reset_data();
+            Serial.println("inside the absolute control");
+            if (last_setting != Usb_control::ABSOLUTE) 
+            {
+                Motors::m1.reset_data(); 
+                Motors::m2.reset_data(); 
+                Motors::m3.reset_data(); 
+                pos.reset();
+            }
             if (at_posisiton) // otherwise the function will repeatetely send ok and clog the system
             {
                 Motors::m1.disable(); // motors should not move if at position
@@ -91,7 +114,7 @@ namespace Calculation
                 at_posisiton = true;
                 last_pos = Vector(x,y,true);
                 pos = Position(x,y,Coordinate::CARTESIAN);
-                Serial.println("OK");
+                //Serial.println(String("OK"));
             }
 
             last_setting = Usb_control::ABSOLUTE;
@@ -99,6 +122,22 @@ namespace Calculation
         }
         else if (settings[Usb_control::RELATIVE])
         {
+            if (last_setting != Usb_control::RELATIVE)
+            {
+                Motors::m1.reset_data(); 
+                Motors::m2.reset_data(); 
+                Motors::m3.reset_data(); 
+                pos.reset();
+            }
+            if (at_posisiton)
+            {
+                Motors::m1.disable();
+                Motors::m2.disable();
+                Motors::m3.disable();
+                return;
+            }
+
+            
 
             last_setting = Usb_control::RELATIVE;
         }
@@ -119,7 +158,7 @@ namespace Calculation
         }
         else if (settings[Usb_control::MOTOR])
         {
-            
+            // this will not work at the moment since every motor requires alot of data to move and there arent at the moment enough variabled being read from serial to store all that data
 
             last_setting = Usb_control::MOTOR;
         }
@@ -129,7 +168,7 @@ namespace Calculation
             settings[Usb_control::GETPOS] = false;
             
             // send the position of the robot, this posiiton is relative to that last time the posisition variable changed
-            Serial.println(pos.string(Coordinate::CARTESIAN, false, 5));
+            //Serial.println(String(pos.string(Coordinate::CARTESIAN, false, 5)));
         }
     }
 } // namespace Calculation
