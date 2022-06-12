@@ -12,7 +12,7 @@ namespace Usb_control
         MOTOR,
         GETPOS
     };
-    static const char Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
+    const char Settings_chars[] = { // the enum Settings and this array are connected and work together to define the functioncality
         'A',
         'E',
         'S',
@@ -20,7 +20,7 @@ namespace Usb_control
         'M',
         'G'
     };
-    static const int amount_settings = sizeof(Settings_chars) / sizeof(char);
+    const int amount_settings = sizeof(Settings_chars) / sizeof(char);
 
     enum Movement
     {
@@ -41,85 +41,39 @@ namespace Usb_control
     };
     static const int amount_movement = sizeof(Movement_chars) / sizeof(char);
 
-
-    template<typename gen>
-    struct Id
+    template<int len, typename gen>
+    struct Data
     {
-        char id;
-        gen data; // can be interpreted as a int or bool later 
-        
-        Id() = default;
-        Id(const Id & i)
-        {
-            this->data = i.data;
-            this->id = i.id;
-        }
-        Id(char id)
-        {
-            this->id = id;
-        }
-        Id(char id, gen data)
-        {
-            this->id = id;
-            this->data = data;
-        }
-    };
+        const char *ids; // i have removed the extra struct and am instead holding the data in an array inside this class
+        gen data[len];
 
-    template<int length, typename gen>
-    struct Ids
-    {
-        Id<gen> identifier[length];
-
-        Ids() = default;
-        Ids(const Ids& i)
+        Data() = default;
+        Data(const Data &d)
         {
-            for (int a = 0; a < length; a++)
+            ids = d.ids;
+            for (int i = 0; i < len; i++)
             {
-                this->identifier[a] = i.identifier[a];
+                data[i] = d.data[i];
             }
         }
-        Ids(const char ids[length])
+        Data(const char * id)
         {
-            for (int i = 0; i < length; i++)
+            ids = id;
+            for (int i = 0; i < len; i++)
             {
-                identifier[i].id = ids[i];
+                data[i] = 0;
             }
         }
     };
 
     class Parsing
     {
-        Ids<amount_settings, bool> settings = Ids<amount_settings, bool>(Settings_chars);
-        Ids<amount_movement, float> movement = Ids<amount_movement, float>(Movement_chars);
-
-
-    public:
-        Parsing() = default;
-        Parsing(const Parsing & p)
-        {
-            this->movement = p.movement;
-            this->settings = p.settings;
-        }
-
-        void parse(const char *, int length);
-        bool* get_settings();
-        double* get_movement(); // can use the enums to go throught the settings witch are loaded into these arrays that are returned
+        Data<amount_settings, bool> settings = Data<amount_settings, bool>(Settings_chars);
+        Data<amount_movement, double> movement = Data<amount_movement, double>(Movement_chars);
     
-        void print_ids()
-        {
-            for (int i = 0; i < amount_movement; i++)
-            {
-                Serial.print(Movement_chars[i]);
-                Serial.print("  ");
-                Serial.println(movement.identifier[i].id);
-            }
-            Serial.println();
-            for (int i = 0; i < amount_settings; i++)
-            {
-                Serial.print(Settings_chars[i]);
-                Serial.print("  ");
-                Serial.println(settings.identifier[i].id);
-            }
-        } 
+    public:
+        void parse(const char *, int);
+        double* get_movement();
+        bool* get_settings();
     };
 } // namespace Usb_control

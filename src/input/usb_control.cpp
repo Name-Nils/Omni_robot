@@ -32,72 +32,52 @@ namespace Usb
 
 namespace Usb_control
 {
-    void Parsing::parse(const char * data, int length)
-    {     
-        print_ids();
-
-        String current_number = "";
+    void Parsing::parse(const char * data, int size)
+    { // size is the amount of bytes/chars 
         bool setting;
-        float * movement_ptr;
-        bool * settings_ptr;
-        for (int i = 0; i < length + 1; i++)
+        bool* setting_ptr;
+        double* movement_ptr;
+        String current_number;
+
+        for (int d = 0; d < size; d++)
         {
-            if (Helper::regex(Helper::numerical, data[i]))
+            const char current = data[d];
+
+            if (Helper::regex(Helper::numerical, current))
             {
-                current_number += data[i];
-                Serial.println(current_number);
+                current_number += current;
                 continue;
             }
 
-            if (Helper::regex(Helper::alphabet, data[i]) || length == i)
+            if (Helper::regex(Helper::alphabet, current) || d == size - 1) // the or statememnt to make sure all are evaluated in case of a non a last item being used
             {
                 if (current_number != "")
                 {
                     if (setting)
                     {
-                        double n = current_number.toDouble();
-                        bool save = false;
-                        if (n > 0.5) save = true;
-
-                        *settings_ptr = save;
+                        *setting_ptr = (bool)round(current_number.toDouble());
                     }
                     else
                     {
                         *movement_ptr = current_number.toDouble();
                     }
-
                     current_number = "";
                 }
 
-
                 for (int s = 0; s < amount_settings; s++)
                 {
-                    const char* id = settings.identifier[s].id;
-                    const char d = data[i];
-
-                    Serial.println(String(id) + " == " + String(d));
-
-
-                    if ((const char *)settings.identifier[s].id == data[i] && data[i] != '\0')
+                    if (settings.ids[s] == current)
                     {
-                        Serial.println("inside !!");
+                        setting_ptr = &settings.data[s];
                         setting = true;
-                        settings_ptr = &settings.identifier[s].data;
-                        break;
                     }
                 }
-                
-            
-                
                 for (int m = 0; m < amount_movement; m++)
                 {
-                    break;
-                    Serial.println(String(movement.identifier[m].id) + " == " + String(data[i]));
-                    if ((const char *)movement.identifier[m].id == data[i] && data[i] != '\0')
+                    if (movement.ids[m] == current)
                     {
+                        movement_ptr = &movement.data[m];
                         setting = false;
-                        movement_ptr = &movement.identifier[m].data;
-                        break;
                     }
                 }
             }
@@ -106,20 +86,10 @@ namespace Usb_control
 
     bool* Parsing::get_settings()
     {
-        bool s[amount_settings];
-        for (int i = 0; i < amount_settings; i++)
-        {
-            s[i] = settings.identifier[i].data;
-        }
-        return s;
+        return settings.data;
     }
     double* Parsing::get_movement()
     {
-        double m[amount_movement];
-        for (int i = 0; i < amount_movement; i++)
-        {
-            m[i] = movement.identifier[i].data;
-        }
-        return m;
+        return movement.data;
     }
 } // namespace Usb_control

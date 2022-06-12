@@ -30,7 +30,7 @@ public:
     Position() = default;
     Position(double, double, double, int);
     Position(double, double, int);
-    char* string(int, bool, int);
+    String string(int, bool, int);
     void reset();
 };
 
@@ -73,30 +73,32 @@ inline Position::Position(double x, double y, int type)
     Position(x, y, 0.0, type);
 }
 
-inline char* Position::string(int type, bool rotation, int digits)
+inline String Position::string(int type, bool rotation, int digits)
 {
-    char * rtn = "pos ";
+    String rtn = "pos ";
 
     if (type == Coordinate::CARTESIAN)
     {
-        strcat(rtn, "X");
-        strcat(rtn, String(x,digits).c_str());
-        strcat(rtn, " Y");
-        strcat(rtn, String(y,digits).c_str());
+        rtn += String("X");
+        rtn += String(x,digits).c_str();
+        rtn += String(" Y");
+        rtn += String(y,digits).c_str();
     }
     else if (type == Coordinate::POLAR)
     {
-        strcat(rtn, "A");
-        strcat(rtn, String(a,digits).c_str());
-        strcat(rtn, " S");
-        strcat(rtn, String(s,digits).c_str());
+        rtn += String("A");
+        rtn += String(a,digits).c_str();
+        rtn += String(" S");
+        rtn += String(s,digits).c_str();
     }
 
     if (rotation)
     {
-        strcat(rtn, " R");
-        strcat(rtn, String(r,digits).c_str());
+        rtn += String(" R");
+        rtn += String(r,digits).c_str();
     }
+
+    return rtn;
 }
 
 inline void Position::reset()

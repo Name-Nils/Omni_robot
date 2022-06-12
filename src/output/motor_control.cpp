@@ -82,9 +82,9 @@ namespace motor_control
 
     void Motor::update_data()
     {
-        const double gear_ratio = 98.8;
-        const double encoder_reads_per_rotation = 11;
-        const double wheel_diameter = 120; // mm
+        static const double gear_ratio = 98.8; // they are statically declared to minimize memory usage
+        static const double encoder_reads_per_rotation = 11;
+        static const double wheel_diameter = 120; // mm
 
         uint32_t current_time = micros();
         double delta_time = (current_time - update_data_last_time) / 1.0e6;
@@ -92,7 +92,15 @@ namespace motor_control
         absolute_position_mm = (encoder_position / (gear_ratio * encoder_reads_per_rotation)) * (wheel_diameter * PI);
 
         double current_speed = (absolute_position_mm - update_data_last_position) / delta_time;
-        speed_mm_s = update_data_speed_smoothing.push(current_speed);
+        
+        update_data_average_array[update_data_average_indx] = current_speed;
+        update_data_average_indx = (update_data_average_indx + 1 >= average_size) ? 0 : update_data_average_indx + 1;
+        double ans = 0;
+        for (int i = 0; i < average_size; i++)
+        {
+            ans += update_data_average_array[i];
+        }
+        speed_mm_s = ans/average_size;
 
         update_data_last_time = current_time;
         update_data_last_position = absolute_position_mm;
@@ -137,8 +145,11 @@ namespace motor_control
         const double I = 1.0;
         const double D = 0.0;
 
+        if (!dir) speed = -speed;
+
         uint32_t current_time = micros();
         double delta_seconds = (current_time - move_speed_last_time) / 1.0e6;
+        move_speed_last_time = current_time;
         if (delta_seconds > 1.0) delta_seconds = 0.0; // in case of non use of this function the delta seconds will be reset to 0
 
         double pid = 0;
@@ -189,8 +200,10 @@ namespace motor_control
         {
             move_relative_last_absolute_position_mm = absolute_position_mm;
         }
-        move_absolute(delta_position + move_relative_last_absolute_position_mm, speed, threshold, accel, new_move);
+        bool rtn = move_absolute(delta_position + move_relative_last_absolute_position_mm, speed, threshold, accel, new_move);
         
         move_relative_last_delta_position = delta_position;
+    
+        return rtn;
     }
 } // namespace motor_control

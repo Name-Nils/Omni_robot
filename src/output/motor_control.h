@@ -3,33 +3,39 @@
 
 namespace Helper
 {
-    template<typename gen, int length>
+    template<int length>
     struct Average
     {
         int i = 0;
-        gen data[length];
-        Average() = default;
-        Average(gen default_val)
+        double data[length];
+        Average()
+        {
+            for (int i = 0; i < length; i++)
+            {
+                data[i] = 0.0;
+            }
+        }
+        Average(double default_val)
         {
             for (int i = 0; i < length; i++)
             {
                 data[i] = default_val;
             }
         }
-        gen push(gen val)
+        double push(double val)
         {
             data[i] = val;
             i++;
-            gen sum = 0;
+            double sum = 0;
             for (int v = 0; v < length; v++)
             {
                 sum += data[v];
             }
             return sum / length;
         }
-        gen get()
+        double get()
         {
-            gen sum = 0;
+            double sum = 0;
             for (int v = 0; v < length; v++)
             {
                 sum += data[v];
@@ -48,8 +54,10 @@ namespace motor_control
         // all static variables for calculations need to be stored here
             // update_data function
                 uint32_t update_data_last_time = micros();
-                Helper::Average<double, 4> update_data_speed_smoothing = Helper::Average<double, 4>(0.0); // this should work although i have had problems with this for some reason in the past
                 double update_data_last_position = 0;
+                static const int average_size = 4;
+                int update_data_average_indx = 0;
+                double update_data_average_array[average_size];
 
             // move speed function
                 uint32_t move_speed_last_time = micros();

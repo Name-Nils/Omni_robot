@@ -43,23 +43,13 @@ namespace Calculation
             at_posisiton = false;
             new_move = true;
 
-            const int buffer_size = 50;
+            const int buffer_size = 20;
             byte buffer[buffer_size];
             size_t size = Serial.readBytesUntil('\n', buffer, buffer_size);
-            
 
-            if (buffer[0] != 255)
-            {
-                Usb::control.parse((const char *)buffer, size);
-            }
-            return;
-
-            //Serial.println(read_data);
+            Usb::control.parse((const char *)buffer, size);
         }
-        else
-        {
-            return;
-        }
+  
 
         // if the robot rotates then the absolute coordinates cant be calculated only from the absolute rotation of the motors
         double *movement = Usb::control.get_movement(); // movement in x and y coordinates
@@ -68,7 +58,6 @@ namespace Calculation
         static Usb_control::Settings last_setting;
         if (settings[Usb_control::ABSOLUTE])
         {
-            Serial.println("inside the absolute control");
             if (last_setting != Usb_control::ABSOLUTE) 
             {
                 Motors::m1.reset_data(); 
@@ -88,6 +77,7 @@ namespace Calculation
             
             double x = movement[Usb_control::X];
             double y = movement[Usb_control::Y];
+
 
             Vector move = Vector(x - last_pos.x, y - last_pos.y, true);
             double m1, m2, m3;
@@ -113,8 +103,10 @@ namespace Calculation
             {
                 at_posisiton = true;
                 last_pos = Vector(x,y,true);
-                pos = Position(x,y,Coordinate::CARTESIAN);
-                //Serial.println(String("OK"));
+                pos.x = x;
+                pos.y = y;
+
+                Serial.println(String("OK"));
             }
 
             last_setting = Usb_control::ABSOLUTE;
@@ -166,9 +158,8 @@ namespace Calculation
         if (settings[Usb_control::GETPOS])
         {
             settings[Usb_control::GETPOS] = false;
-            
             // send the position of the robot, this posiiton is relative to that last time the posisition variable changed
-            //Serial.println(String(pos.string(Coordinate::CARTESIAN, false, 5)));
+            Serial.println(pos.string(Coordinate::CARTESIAN, false, 5));
         }
     }
 } // namespace Calculation
